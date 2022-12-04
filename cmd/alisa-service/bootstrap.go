@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
+	"github.com/vedga/alisa/internal/pkg/log"
 	"github.com/vedga/alisa/internal/service/alisa"
-	"github.com/vedga/alisa/pkg/log"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapio"
