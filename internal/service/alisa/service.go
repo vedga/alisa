@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
+	"github.com/vedga/alisa/internal/pkg/https"
 	"github.com/vedga/alisa/internal/pkg/log"
 )
 
@@ -37,7 +38,7 @@ func NewService(tlsConfig *tls.Config) (implementation *Implementation, e error)
 	if nil == tlsConfig {
 		implementation.Runnable = runnable.HTTPServer(server)
 	} else {
-		implementation.Runnable = HTTPServerTLS(server)
+		implementation.Runnable = https.HTTPServerTLS(server)
 	}
 
 	return implementation, nil
