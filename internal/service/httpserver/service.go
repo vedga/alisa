@@ -14,7 +14,7 @@ const (
 	envPrivateKey       = "PRIVATE_KEY"
 )
 
-// Service is Alisa service implementation
+// Service is HTTP(S) service implementation
 type Service struct {
 	runnable.Runnable
 	engine *gin.Engine
