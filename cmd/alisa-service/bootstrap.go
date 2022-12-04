@@ -3,11 +3,11 @@ package main
 import (
 	stdlog "log"
 
-	"go.uber.org/zap"
-
 	"github.com/pior/runnable"
 	"github.com/vedga/alisa/internal/service/alisa"
 	"github.com/vedga/alisa/pkg/log"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func main() {
@@ -20,6 +20,13 @@ func main() {
 	defer func(logger *zap.Logger) {
 		_ = logger.Sync() // flushes buffer, if any
 	}(logger)
+
+	// Set logger for runnable package
+	var stdLogger *stdlog.Logger
+	if stdLogger, e = zap.NewStdLogAt(logger, zapcore.DebugLevel); nil != e {
+		stdlog.Fatal(e)
+	}
+	runnable.SetLogger(stdLogger)
 
 	appManager := runnable.NewManager()
 
