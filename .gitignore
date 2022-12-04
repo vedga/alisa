@@ -11,6 +11,10 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Sensitive data
+/tls/fullchain.pem
+/tls/privatekey.pem
+
 # Dependency directories (remove the comment below to include it)
 /bin
 /vendor
