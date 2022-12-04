@@ -1,17 +1,17 @@
 package alisa
 
 import (
-	"crypto/tls"
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
-	"github.com/vedga/alisa/internal/pkg/https"
 	"github.com/vedga/alisa/internal/pkg/log"
 )
 
 const (
-	endpointProbe = "/v1.0/"
+	backendEndpointPrefix = "/alisa/"
+	backendEndpointProbe  = backendEndpointPrefix + "v1.0/"
 )
 
 // Implementation is Alisa service implementation
@@ -20,28 +20,22 @@ type Implementation struct {
 }
 
 // NewService return new service implementation
-func NewService(tlsConfig *tls.Config) (implementation *Implementation, e error) {
+func NewService(router gin.IRoutes) (implementation *Implementation, e error) {
 	implementation = &Implementation{}
 
-	router := gin.New()
-
-	router.HEAD(endpointProbe, implementation.onProbe)
+	router.HEAD(backendEndpointProbe, implementation.onProbe)
 	// Debug only!
-	router.GET(endpointProbe, implementation.onProbe)
-
-	server := &http.Server{
-		Addr:      "0.0.0.0:8443",
-		TLSConfig: tlsConfig,
-		Handler:   router,
-	}
-
-	if nil == tlsConfig {
-		implementation.Runnable = runnable.HTTPServer(server)
-	} else {
-		implementation.Runnable = https.HTTPServerTLS(server)
-	}
+	router.GET(backendEndpointProbe, implementation.onProbe)
 
 	return implementation, nil
+}
+
+// Run is implementation of runnable.Runnable interface
+func (implementation *Implementation) Run(ctx context.Context) error {
+	// Wait until operation complete
+	<-ctx.Done()
+
+	return ctx.Err()
 }
 
 // onProbe called by Yandex to check this service ready status

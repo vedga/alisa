@@ -1,22 +1,16 @@
 package main
 
 import (
-	"crypto/tls"
 	stdlog "log"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
 	"github.com/vedga/alisa/internal/pkg/log"
 	"github.com/vedga/alisa/internal/service/alisa"
+	"github.com/vedga/alisa/internal/service/httpserver"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapio"
-)
-
-const (
-	envCertificateChain = "CERTIFICATE_CHAIN"
-	envPrivateKey       = "PRIVATE_KEY"
 )
 
 func main() {
@@ -49,41 +43,17 @@ func main() {
 
 	appManager := runnable.NewManager()
 
-	var tlsConfig *tls.Config
-	if fileName, found := os.LookupEnv(envCertificateChain); found {
-		// TLS configuration
-		var certificateChain []byte
-		if certificateChain, e = os.ReadFile(fileName); nil != e {
-			log.Log.Error("Unable to read certificate file", zap.Error(e))
-			logger.Error("Unable to read certificate file", zap.Error(e))
-			return
-		}
-
-		var privateKey []byte
-		if fileName, found = os.LookupEnv(envPrivateKey); found {
-			if privateKey, e = os.ReadFile(fileName); nil != e {
-				log.Log.Error("Unable to read private key file", zap.Error(e))
-			}
-		}
-
-		var certificate tls.Certificate
-		if certificate, e = tls.X509KeyPair(certificateChain, privateKey); nil != e {
-			stdlog.Fatal(e)
-		}
-
-		tlsConfig = &tls.Config{
-			Certificates: []tls.Certificate{
-				certificate,
-			},
-		}
+	var httpService *httpserver.Implementation
+	if httpService, e = httpserver.NewService(); nil != e {
+		stdlog.Fatal(e)
 	}
 
 	// Create Alisa service and add it to the application manager
 	var alisaService *alisa.Implementation
-	if alisaService, e = alisa.NewService(tlsConfig); nil != e {
+	if alisaService, e = alisa.NewService(httpService.Routes()); nil != e {
 		stdlog.Fatal(e)
 	}
-	appManager.Add(alisaService)
+	appManager.Add(alisaService, httpService)
 
 	log.Log.Debugf("Application started")
 
