@@ -3,6 +3,7 @@ package alisa
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
 )
 
@@ -13,9 +14,12 @@ type Implementation struct {
 
 // NewService return new service implementation
 func NewService() *Implementation {
+	router := gin.New()
+	//mux := http.NewServeMux()
+
 	server := &http.Server{
 		Addr:    "127.0.0.1:8080",
-		Handler: http.NotFoundHandler(),
+		Handler: router, //http.NotFoundHandler(),
 	}
 
 	return &Implementation{
