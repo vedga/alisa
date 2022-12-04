@@ -3,10 +3,11 @@ package https
 import (
 	"context"
 	"fmt"
-	"github.com/pior/runnable"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/pior/runnable"
 )
 
 type httpServerTLS struct {
