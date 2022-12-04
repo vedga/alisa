@@ -62,7 +62,7 @@ func NewService() (service *Service, e error) {
 	if nil == tlsConfig {
 		service.Runnable = runnable.HTTPServer(server)
 	} else {
-		service.Runnable = HTTPServerTLS(server)
+		service.Runnable = serverTLS(server)
 	}
 
 	return service, nil

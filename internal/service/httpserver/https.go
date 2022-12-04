@@ -15,8 +15,8 @@ type httpServerTLS struct {
 	shutdownTimeout time.Duration
 }
 
-// HTTPServerTLS returns a runnable that runs a *http.Server.
-func HTTPServerTLS(server *http.Server) runnable.Runnable {
+// serverTLS returns a runnable that runs a *http.Server.
+func serverTLS(server *http.Server) runnable.Runnable {
 	return &httpServerTLS{server, time.Second * 30}
 }
 
