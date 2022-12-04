@@ -43,13 +43,13 @@ func main() {
 
 	appManager := runnable.NewManager()
 
-	var httpService *httpserver.Implementation
+	var httpService *httpserver.Service
 	if httpService, e = httpserver.NewService(); nil != e {
 		stdlog.Fatal(e)
 	}
 
 	// Create Alisa service and add it to the application manager
-	var alisaService *alisa.Implementation
+	var alisaService *alisa.Service
 	if alisaService, e = alisa.NewService(httpService.Routes()); nil != e {
 		stdlog.Fatal(e)
 	}

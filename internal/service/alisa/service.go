@@ -14,24 +14,24 @@ const (
 	backendEndpointProbe  = backendEndpointPrefix + "v1.0/"
 )
 
-// Implementation is Alisa service implementation
-type Implementation struct {
+// Service is Alisa service implementation
+type Service struct {
 	runnable.Runnable
 }
 
 // NewService return new service implementation
-func NewService(router gin.IRoutes) (implementation *Implementation, e error) {
-	implementation = &Implementation{}
+func NewService(router gin.IRoutes) (service *Service, e error) {
+	service = &Service{}
 
-	router.HEAD(backendEndpointProbe, implementation.onProbe)
+	router.HEAD(backendEndpointProbe, service.onProbe)
 	// Debug only!
-	router.GET(backendEndpointProbe, implementation.onProbe)
+	router.GET(backendEndpointProbe, service.onProbe)
 
-	return implementation, nil
+	return service, nil
 }
 
 // Run is implementation of runnable.Runnable interface
-func (implementation *Implementation) Run(ctx context.Context) error {
+func (service *Service) Run(ctx context.Context) error {
 	// Wait until operation complete
 	<-ctx.Done()
 
@@ -44,7 +44,7 @@ func (implementation *Implementation) Run(ctx context.Context) error {
 // http.StatusBadRequest - request error
 // http.StatusNotFound - URL not found
 // StatusInternalServerError - internal service error
-func (implementation *Implementation) onProbe(ginCtx *gin.Context) {
+func (service *Service) onProbe(ginCtx *gin.Context) {
 	log.Log.Debug("Service probed")
 	ginCtx.Status(http.StatusOK)
 }

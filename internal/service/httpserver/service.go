@@ -14,14 +14,14 @@ const (
 	envPrivateKey       = "PRIVATE_KEY"
 )
 
-// Implementation is Alisa service implementation
-type Implementation struct {
+// Service is Alisa service implementation
+type Service struct {
 	runnable.Runnable
 	engine *gin.Engine
 }
 
 // NewService return new service implementation
-func NewService() (implementation *Implementation, e error) {
+func NewService() (service *Service, e error) {
 	var tlsConfig *tls.Config
 	if fileName, found := os.LookupEnv(envCertificateChain); found {
 		// TLS configuration
@@ -49,26 +49,26 @@ func NewService() (implementation *Implementation, e error) {
 		}
 	}
 
-	implementation = &Implementation{
+	service = &Service{
 		engine: gin.New(),
 	}
 
 	server := &http.Server{
 		Addr:      "0.0.0.0:8443",
 		TLSConfig: tlsConfig,
-		Handler:   implementation.engine,
+		Handler:   service.engine,
 	}
 
 	if nil == tlsConfig {
-		implementation.Runnable = runnable.HTTPServer(server)
+		service.Runnable = runnable.HTTPServer(server)
 	} else {
-		implementation.Runnable = HTTPServerTLS(server)
+		service.Runnable = HTTPServerTLS(server)
 	}
 
-	return implementation, nil
+	return service, nil
 }
 
 // Routes return routes controller
-func (implementation *Implementation) Routes() gin.IRoutes {
-	return implementation.engine
+func (service *Service) Routes() gin.IRoutes {
+	return service.engine
 }
