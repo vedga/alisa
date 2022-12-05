@@ -8,6 +8,7 @@ import (
 	"github.com/vedga/alisa/internal/pkg/log"
 	"github.com/vedga/alisa/internal/service/alisa"
 	"github.com/vedga/alisa/internal/service/httpserver"
+	"github.com/vedga/alisa/internal/service/mqtt"
 	"github.com/vedga/alisa/internal/service/oauth"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -44,6 +45,11 @@ func main() {
 
 	appManager := runnable.NewManager()
 
+	var mqttService *mqtt.Service
+	if mqttService, e = mqtt.NewService(); nil != e {
+		stdlog.Fatal(e)
+	}
+
 	var httpService *httpserver.Service
 	if httpService, e = httpserver.NewService(); nil != e {
 		stdlog.Fatal(e)
@@ -59,7 +65,8 @@ func main() {
 	if alisaService, e = alisa.NewService(httpService.Router(), oauthService); nil != e {
 		stdlog.Fatal(e)
 	}
-	appManager.Add(httpService, oauthService, alisaService)
+
+	appManager.Add(httpService, oauthService, alisaService, mqttService)
 
 	log.Log.Debugf("Application started")
 
