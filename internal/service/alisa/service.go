@@ -7,25 +7,54 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
 	"github.com/vedga/alisa/internal/pkg/log"
+	"github.com/vedga/alisa/internal/service/oauth"
 )
 
 const (
-	backendEndpointPrefix = "/alisa/"
-	backendEndpointProbe  = backendEndpointPrefix + "v1.0/"
+	alisaEndpointPrefix        = "/alisa"
+	alisaEndpointProbe         = alisaEndpointPrefix + "/v1.0"
+	alisaEndpointUserPrefix    = alisaEndpointProbe + "/user/"
+	alisaEndpointUnlink        = "unlink"
+	alisaEndpointDevices       = "devices"
+	alisaEndpointDevicesQuery  = "query"
+	alisaEndpointDevicesAction = "action"
 )
 
 // Service is Alisa service implementation
 type Service struct {
 	runnable.Runnable
+	oauthService *oauth.Service
 }
 
 // NewService return new service implementation
-func NewService(router gin.IRoutes) (service *Service, e error) {
-	service = &Service{}
+func NewService(router gin.IRouter, oauthService *oauth.Service) (service *Service, e error) {
+	service = &Service{
+		oauthService: oauthService,
+	}
 
-	router.HEAD(backendEndpointProbe, service.onProbe)
-	// Debug only!
-	router.GET(backendEndpointProbe, service.onProbe)
+	// Following group required only authorized access
+	authorized := router.Group(alisaEndpointUserPrefix)
+
+	// Set bearer token checker
+	authorized.Use(func(ginCtx *gin.Context) {
+		tokenInfo, e := service.oauthService.ValidationBearerToken(ginCtx)
+		if nil != e {
+			ginCtx.Status(http.StatusUnauthorized)
+			ginCtx.Abort()
+			return
+		}
+
+		log.Log.Debugf("Token %v", tokenInfo)
+
+		// Call next handler
+		ginCtx.Next()
+	})
+
+	router.HEAD(alisaEndpointProbe, service.onProbe)
+	authorized.POST(alisaEndpointUnlink, service.onUnlink)
+	authorized.GET(alisaEndpointDevices, service.onDevices)
+	authorized.POST(alisaEndpointDevicesQuery, service.onDevicesQuery)
+	authorized.POST(alisaEndpointDevicesAction, service.onDevicesAction)
 
 	return service, nil
 }
@@ -46,5 +75,28 @@ func (service *Service) Run(ctx context.Context) error {
 // StatusInternalServerError - internal service error
 func (service *Service) onProbe(ginCtx *gin.Context) {
 	log.Log.Debug("Service probed")
+	ginCtx.Status(http.StatusOK)
+}
+
+// onUnlink called by Yandex when accounts unlinked
+func (service *Service) onUnlink(ginCtx *gin.Context) {
+	log.Log.Debug("Accounts unlinked")
+	ginCtx.Status(http.StatusOK)
+}
+
+// onDevices called by Yandex to enumerate devices
+func (service *Service) onDevices(ginCtx *gin.Context) {
+	ginCtx.Status(http.StatusOK)
+}
+
+// onDevicesQuery called by Yandex to query device states
+func (service *Service) onDevicesQuery(ginCtx *gin.Context) {
+	log.Log.Debug("Query devices")
+	ginCtx.Status(http.StatusOK)
+}
+
+// onDevicesAction called by Yandex to perform action on the device
+func (service *Service) onDevicesAction(ginCtx *gin.Context) {
+	log.Log.Debug("Devices action")
 	ginCtx.Status(http.StatusOK)
 }

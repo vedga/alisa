@@ -8,6 +8,7 @@ import (
 	"github.com/vedga/alisa/internal/pkg/log"
 	"github.com/vedga/alisa/internal/service/alisa"
 	"github.com/vedga/alisa/internal/service/httpserver"
+	"github.com/vedga/alisa/internal/service/oauth"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapio"
@@ -48,12 +49,17 @@ func main() {
 		stdlog.Fatal(e)
 	}
 
-	// Create Alisa service and add it to the application manager
-	var alisaService *alisa.Service
-	if alisaService, e = alisa.NewService(httpService.Routes()); nil != e {
+	var oauthService *oauth.Service
+	if oauthService, e = oauth.NewService(httpService.Router()); nil != e {
 		stdlog.Fatal(e)
 	}
-	appManager.Add(alisaService, httpService)
+
+	// Create Alisa service and add it to the application manager
+	var alisaService *alisa.Service
+	if alisaService, e = alisa.NewService(httpService.Router(), oauthService); nil != e {
+		stdlog.Fatal(e)
+	}
+	appManager.Add(httpService, oauthService, alisaService)
 
 	log.Log.Debugf("Application started")
 

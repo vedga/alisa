@@ -68,7 +68,7 @@ func NewService() (service *Service, e error) {
 	return service, nil
 }
 
-// Routes return routes controller
-func (service *Service) Routes() gin.IRoutes {
+// Router return routes controller
+func (service *Service) Router() gin.IRouter {
 	return service.engine
 }
