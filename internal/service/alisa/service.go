@@ -23,21 +23,18 @@ const (
 // Service is Alisa service implementation
 type Service struct {
 	runnable.Runnable
-	oauthService *oauth.Service
 }
 
 // NewService return new service implementation
 func NewService(router gin.IRouter, oauthService *oauth.Service) (service *Service, e error) {
-	service = &Service{
-		oauthService: oauthService,
-	}
+	service = &Service{}
 
 	// Following group required only authorized access
 	authorized := router.Group(alisaEndpointUserPrefix)
 
 	// Set bearer token checker
 	authorized.Use(func(ginCtx *gin.Context) {
-		tokenInfo, e := service.oauthService.ValidationBearerToken(ginCtx)
+		tokenInfo, e := oauthService.ValidationBearerToken(ginCtx)
 		if nil != e {
 			ginCtx.Status(http.StatusUnauthorized)
 			ginCtx.Abort()
