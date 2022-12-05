@@ -4,9 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-oauth2/oauth2/v4/errors"
-
 	"github.com/gin-gonic/gin"
+	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/pior/runnable"
 	"github.com/vedga/alisa/internal/pkg/log"
 	"github.com/vedga/alisa/internal/service/oauth"
@@ -20,6 +19,8 @@ const (
 	alisaEndpointDevices       = "devices"
 	alisaEndpointDevicesQuery  = "query"
 	alisaEndpointDevicesAction = "action"
+	headerRequestID            = "X-Request-Id"
+	contextUserID              = "X-User-ID"
 )
 
 // Service is Alisa service implementation
@@ -48,6 +49,9 @@ func NewService(router gin.IRouter, oauthService *oauth.Service) (service *Servi
 			ginCtx.Abort()
 			return
 		}
+
+		// Add User ID to the context
+		ginCtx.Set(contextUserID, tokenInfo.GetUserID())
 
 		log.Log.Debugf("Token %v", tokenInfo)
 
@@ -86,12 +90,19 @@ func (service *Service) onProbe(ginCtx *gin.Context) {
 // onUnlink called by Yandex when accounts unlinked
 func (service *Service) onUnlink(ginCtx *gin.Context) {
 	log.Log.Debug("Accounts unlinked")
-	ginCtx.Status(http.StatusOK)
+
+	msg := newUnlinkResponse(ginCtx)
+
+	ginCtx.JSON(http.StatusOK, msg)
 }
 
 // onDevices called by Yandex to enumerate devices
 func (service *Service) onDevices(ginCtx *gin.Context) {
-	ginCtx.Status(http.StatusOK)
+	log.Log.Debug("Enumerate devices")
+
+	msg := newDevicesResponse(ginCtx)
+
+	ginCtx.JSON(http.StatusOK, msg)
 }
 
 // onDevicesQuery called by Yandex to query device states
