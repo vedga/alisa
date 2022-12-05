@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/go-oauth2/oauth2/v4/errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pior/runnable"
 	"github.com/vedga/alisa/internal/pkg/log"
@@ -36,7 +38,13 @@ func NewService(router gin.IRouter, oauthService *oauth.Service) (service *Servi
 	authorized.Use(func(ginCtx *gin.Context) {
 		tokenInfo, e := oauthService.ValidationBearerToken(ginCtx)
 		if nil != e {
-			ginCtx.Status(http.StatusUnauthorized)
+			switch e {
+			case errors.ErrInvalidAccessToken:
+				ginCtx.Status(http.StatusForbidden)
+			default:
+				ginCtx.Status(http.StatusUnauthorized)
+			}
+
 			ginCtx.Abort()
 			return
 		}
