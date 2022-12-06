@@ -10,6 +10,7 @@ import (
 	"github.com/vedga/alisa/internal/service/httpserver"
 	"github.com/vedga/alisa/internal/service/mqtt"
 	"github.com/vedga/alisa/internal/service/oauth"
+	"github.com/vedga/alisa/pkg/eventbus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zapio"
@@ -43,10 +44,12 @@ func main() {
 	gin.DefaultWriter = logWriter
 	gin.DefaultErrorWriter = logWriter
 
+	bus := eventbus.New()
+
 	appManager := runnable.NewManager()
 
 	var mqttService *mqtt.Service
-	if mqttService, e = mqtt.NewService(); nil != e {
+	if mqttService, e = mqtt.NewService(bus); nil != e {
 		stdlog.Fatal(e)
 	}
 
