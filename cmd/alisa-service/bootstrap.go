@@ -7,9 +7,11 @@ import (
 	"github.com/pior/runnable"
 	"github.com/vedga/alisa/internal/pkg/log"
 	"github.com/vedga/alisa/internal/service/alisa"
+	"github.com/vedga/alisa/internal/service/devices"
 	"github.com/vedga/alisa/internal/service/httpserver"
 	"github.com/vedga/alisa/internal/service/mqtt"
 	"github.com/vedga/alisa/internal/service/oauth"
+	"github.com/vedga/alisa/internal/service/tasmota"
 	"github.com/vedga/alisa/pkg/eventbus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -44,12 +46,21 @@ func main() {
 	gin.DefaultWriter = logWriter
 	gin.DefaultErrorWriter = logWriter
 
+	// Create evens distribution bus
 	bus := eventbus.New()
-
-	appManager := runnable.NewManager()
 
 	var mqttService *mqtt.Service
 	if mqttService, e = mqtt.NewService(bus); nil != e {
+		stdlog.Fatal(e)
+	}
+
+	var devicesService *devices.Service
+	if devicesService, e = devices.NewService(); nil != e {
+		stdlog.Fatal(e)
+	}
+
+	var tasmotaService *tasmota.Service
+	if tasmotaService, e = tasmota.NewService(bus, devicesService); nil != e {
 		stdlog.Fatal(e)
 	}
 
@@ -69,7 +80,15 @@ func main() {
 		stdlog.Fatal(e)
 	}
 
-	appManager.Add(httpService, oauthService, alisaService, mqttService)
+	appManager := runnable.NewManager()
+
+	appManager.Add(devicesService)
+
+	appManager.Add(mqttService, tasmotaService)
+
+	appManager.Add(httpService, oauthService)
+
+	appManager.Add(alisaService)
 
 	log.Log.Debugf("Application started")
 
