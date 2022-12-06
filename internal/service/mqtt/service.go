@@ -39,7 +39,7 @@ const (
 // EventMQTT is MQTT event content
 type EventMQTT struct {
 	Topic   []string
-	Payload string
+	Payload []byte
 }
 
 // Service is MQTT client service implementation
@@ -171,7 +171,7 @@ func (service *Service) onMessageDiscovery(_ mqttclient.Client, msg mqttclient.M
 
 // traceMessageDiscovery trace received discovery message
 func (service *Service) traceMessageDiscovery(event EventMQTT) {
-	log.Log.Debug("Rx MQTT discovery", event)
+	log.Log.Debug("Rx MQTT discovery", event.Topic, string(event.Payload[:]))
 }
 
 // onMessageTelemetry called when received telemetry message
@@ -183,7 +183,7 @@ func (service *Service) onMessageTelemetry(_ mqttclient.Client, msg mqttclient.M
 
 // traceMessageTelemetry trace received telemetry message
 func (service *Service) traceMessageTelemetry(event EventMQTT) {
-	log.Log.Debug("Rx MQTT telemetry", event)
+	log.Log.Debug("Rx MQTT telemetry", event.Topic, string(event.Payload[:]))
 }
 
 // onMessageCommands called when received command message
@@ -195,7 +195,7 @@ func (service *Service) onMessageCommands(_ mqttclient.Client, msg mqttclient.Me
 
 // traceMessageCommand trace received command message
 func (service *Service) traceMessageCommand(event EventMQTT) {
-	log.Log.Debug("Rx MQTT command", event)
+	log.Log.Debug("Rx MQTT command", event.Topic, string(event.Payload[:]))
 }
 
 // onMessageStatuses called when received status message
@@ -207,7 +207,7 @@ func (service *Service) onMessageStatuses(_ mqttclient.Client, msg mqttclient.Me
 
 // traceMessageStatus trace received status message
 func (service *Service) traceMessageStatus(event EventMQTT) {
-	log.Log.Debug("Rx MQTT status", event)
+	log.Log.Debug("Rx MQTT status", event.Topic, string(event.Payload[:]))
 }
 
 // onMessage called when received message from MQTT
@@ -219,6 +219,6 @@ func (service *Service) onMessage(_ mqttclient.Client, msg mqttclient.Message) {
 func NewEventMQTT(topic string, payload []byte) EventMQTT {
 	return EventMQTT{
 		Topic:   strings.Split(topic, topicPartsDelimiter),
-		Payload: string(payload[:]),
+		Payload: payload,
 	}
 }
